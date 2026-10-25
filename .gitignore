@@ -1,0 +1,43 @@
+# Git Ignore for Industrial Anomaly Detection Project
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Data Directory (MVTec AD dataset is under CC BY-NC-SA 4.0; never commit raw datasets)
+data/raw/
+data/processed/
+*.tar.xz
+*.tar.gz
+*.zip
+*.png
+*.jpg
+*.jpeg
+
+# Model weights and temporary buffers
+*.pt
+*.pth
+*.onnx
+tmp/
+~/tmp/
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+*/.ipynb_checkpoints/*
+
+# Virtual environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# IDE and OS files
+.DS_Store
+.idea/
+.vscode/
+*.swp
+*.swo
