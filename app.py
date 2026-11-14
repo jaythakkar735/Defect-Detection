@@ -3,6 +3,7 @@ Industrial Quality Control Station // Defect Detection Entrypoint.
 High-throughput, budget-aware anomaly detection system for manufacturing lines.
 """
 import sys
+import pickle
 from pathlib import Path
 import streamlit as st
 import torch
@@ -62,21 +63,50 @@ if "audience_mode" not in st.session_state:
 # ----------------- CACHED MODEL LOADING -----------------
 @st.cache_resource
 def load_category_data(cat: str):
-    """Caches model, embeddings, and test evaluations on demand per category."""
+    """
+    Caches model, embeddings, and test evaluations on demand per category.
+    Supports both local execution (with full raw MVTec dataset) and standalone
+    cloud deployment (with precomputed benchmark cache and curated demo samples).
+    """
     cat_dir = DATA_RAW_DIR / cat
     transform = get_default_transforms()
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-    
-    train_ds = MVTecCategoryDataset(cat_dir, split="train", transform=transform)
-    train_loader = DataLoader(train_ds, batch_size=16, shuffle=False)
-    
     detector = ResNetAnomalyDetector(device=device, backbone="resnet18")
-    detector.fit(train_loader)
     
-    test_ds = MVTecCategoryDataset(cat_dir, split="test", transform=transform)
-    test_loader = DataLoader(test_ds, batch_size=16, shuffle=False)
-    eval_res = detector.evaluate(test_loader)
-    
+    # 1. Full Local Raw Dataset (if available on the machine)
+    if (cat_dir / "train").exists() and (cat_dir / "test").exists():
+        train_ds = MVTecCategoryDataset(cat_dir, split="train", transform=transform)
+        train_loader = DataLoader(train_ds, batch_size=16, shuffle=False)
+        detector.fit(train_loader)
+        
+        test_ds = MVTecCategoryDataset(cat_dir, split="test", transform=transform)
+        test_loader = DataLoader(test_ds, batch_size=16, shuffle=False)
+        eval_res = detector.evaluate(test_loader)
+    else:
+        # 2. Standalone Cloud Deployment Mode: Load precomputed centroid, threshold, and metrics
+        cache_file = ASSETS_DIR / "precomputed" / "benchmark_cache.pkl"
+        if not cache_file.exists():
+            raise FileNotFoundError(f"Neither raw dataset nor precomputed cache found for {cat}.")
+        
+        with open(cache_file, "rb") as f:
+            cache = pickle.load(f)
+        cat_cache = cache[cat]
+        detector.load_precomputed(cat_cache["normal_centroid"], cat_cache["threshold"])
+        
+        eval_res = {
+            "auroc": cat_cache["auroc"],
+            "threshold": cat_cache["threshold"],
+            "fpr": cat_cache["fpr"],
+            "tpr": cat_cache["tpr"],
+            "scores": cat_cache["scores"],
+            "labels": cat_cache["labels"],
+            "predicted_defect": cat_cache["predicted_defect"]
+        }
+        
+        # Load curated demo test dataset
+        demo_cat_dir = PROJECT_ROOT / "data" / "demo_samples" / cat
+        test_ds = MVTecCategoryDataset(demo_cat_dir, split="demo", transform=transform)
+        
     return {
         "detector": detector,
         "eval_res": eval_res,

@@ -82,6 +82,12 @@ class ResNetAnomalyDetector:
         self.threshold = float(np.percentile(train_distances, 95))
         return self
 
+    def load_precomputed(self, centroid: np.ndarray, threshold: float):
+        """Loads precomputed normal centroid and calibrated threshold for cloud deployment."""
+        self.normal_centroid = np.array(centroid, dtype=np.float32)
+        self.threshold = float(threshold)
+        return self
+
     def score_features(self, features: np.ndarray) -> np.ndarray:
         """Compute anomaly scores from extracted feature vectors."""
         if self.normal_centroid is None:

@@ -11,9 +11,10 @@ data/processed/
 *.tar.xz
 *.tar.gz
 *.zip
-*.png
-*.jpg
-*.jpeg
+
+# Allow bundled demo samples for standalone cloud deployment
+!data/demo_samples/
+!data/demo_samples/**
 
 # Model weights and temporary buffers
 *.pt

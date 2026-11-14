@@ -1,9 +1,9 @@
 # Budget-Aware Industrial Anomaly Detection with Human-in-the-Loop Inspection
 
+[![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://share.streamlit.io/)
 [![Python 3.10](https://img.shields.io/badge/Python-3.10-blue.svg)](https://www.python.org/)
 [![PyTorch 2.6](https://img.shields.io/badge/PyTorch-2.6%20%7C%20CUDA-EE4C2C.svg)](https://pytorch.org/)
-[![Streamlit App](https://img.shields.io/badge/Streamlit-SCADA%20Dashboard-FF4B4B.svg)](https://streamlit.io/)
-[![Pytest Suite](https://img.shields.io/badge/Tests-8%2F8%20Passed-2BD4A0.svg)](#test-suite--verification)
+[![Pytest Suite](https://img.shields.io/badge/Tests-11%2F11%20Passed-2BD4A0.svg)](#test-suite--verification)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Dataset MVTec AD](https://img.shields.io/badge/Dataset-MVTec%20AD-success.svg)](https://www.mvtec.com/research-teaching/datasets/mvtec-ad)
 [![Hardware Friendly](https://img.shields.io/badge/Hardware-RTX%203050%20(4GB%20VRAM)-brightgreen.svg)](#hardware-efficiency)
@@ -11,6 +11,8 @@
 An industrial-grade computer vision system that trains exclusively on defect-free manufactured parts to **prioritize suspicious items for limited human quality review**.
 
 Rather than naively chasing academic AUROC scores in isolation, this system addresses the practical factory reality: *under fixed human inspection budgets (e.g., 10% daily review capacity), how can computer vision prioritize items to catch the maximum number of defects while minimizing the cost of escaped flaws?*
+
+> **Cloud-Ready / Zero-Setup Demo:** This repository includes bundled lightweight demo samples (`data/demo_samples/`) and precomputed benchmark calibration weights (`assets/precomputed/`). The entire web dashboard can be deployed to **Streamlit Community Cloud with 1 click** without requiring the multi-gigabyte MVTec AD dataset download. If the full raw dataset is placed locally in `data/raw/`, the app automatically switches to full end-to-end dataset mode.
 
 ---
 
@@ -168,11 +170,28 @@ pytest tests/
 ```
 Output:
 ```text
-tests/test_decision.py ....                                              [ 50%]
-tests/test_invariance.py .                                               [ 62%]
+tests/test_decision.py ....                                              [ 36%]
+tests/test_invariance.py .                                               [ 45%]
+tests/test_precomputed.py ...                                            [ 72%]
 tests/test_simulation.py ...                                             [100%]
-============================== 8 passed in 7.70s ===============================
+============================== 11 passed in 8.08s ==============================
 ```
+
+---
+
+## 1-Click Streamlit Community Cloud Deployment
+
+This repository is pre-configured for instant, free deployment on [Streamlit Community Cloud](https://share.streamlit.io/):
+
+1. Go to [share.streamlit.io](https://share.streamlit.io/) and sign in with your GitHub account.
+2. Click **"New app"**.
+3. Fill in the deployment fields:
+   * **Repository:** `jaythakkar735/Defect-Detection`
+   * **Branch:** `main`
+   * **Main file path:** `app.py`
+4. Click **"Deploy!"**.
+
+Because `assets/precomputed/` and `data/demo_samples/` are bundled, the cloud deployment boots in seconds without downloading gigabytes of dataset files. Visitors can test all 6 manufacturing categories, upload their own custom images for live ResNet-18 inference, run shift simulations, and toggle between Operator and Engineer views.
 
 ### 5. Run the Jupyter Notebooks
 ```bash

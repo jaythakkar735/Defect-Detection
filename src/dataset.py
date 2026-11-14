@@ -30,6 +30,31 @@ class MVTecCategoryDataset(Dataset):
         self._load_samples()
 
     def _load_samples(self):
+        if self.split == "demo" or (not (self.category_dir / self.split).exists() and (self.category_dir / "good").exists()):
+            # Direct demo sample structure: category_dir directly contains 'good' and defect subdirectories
+            for defect_dir in sorted(self.category_dir.iterdir()):
+                if not defect_dir.is_dir() or defect_dir.name == "ground_truth":
+                    continue
+                defect_name = defect_dir.name
+                is_defect = defect_name != "good"
+                label = 1 if is_defect else 0
+
+                for img_path in sorted(defect_dir.glob("*.png")):
+                    mask_path = None
+                    if is_defect:
+                        expected_mask = self.category_dir / "ground_truth" / defect_name / f"{img_path.stem}_mask.png"
+                        if expected_mask.exists():
+                            mask_path = expected_mask
+
+                    self.samples.append({
+                        "image_path": img_path,
+                        "filename": img_path.name,
+                        "label": label,
+                        "defect_type": defect_name,
+                        "mask_path": mask_path
+                    })
+            return
+
         split_dir = self.category_dir / self.split
         if not split_dir.exists():
             raise FileNotFoundError(f"Split directory does not exist: {split_dir}")
